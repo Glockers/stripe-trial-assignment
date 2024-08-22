@@ -28,6 +28,10 @@
 
 ## Installation
 
+```cmd
+ docker-compose -f docker-compose.dev.yaml up
+```
+
 ```bash
 $ yarn install
 ```
