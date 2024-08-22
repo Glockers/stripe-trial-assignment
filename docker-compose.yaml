@@ -1,0 +1,18 @@
+version: '3.9'
+services:
+  # server:
+  #   container_name: server
+  #   build:
+  #     dockerfile: Dockerfile
+  #   restart: on-failure
+  #   command: yarn start:dev
+  #   ports:
+  #     - 5000:5000
+  #   volumes:
+  #     - ./:/usr/src/app
+  stripe:
+    container_name: stripe
+    image: stripe/stripe-cli:latest
+    command: listen --skip-verify --forward-to host.docker.internal:5000/api/stripe/webhook
+    extra_hosts:
+      - --add-host=host.docker.internal:host-gateway
