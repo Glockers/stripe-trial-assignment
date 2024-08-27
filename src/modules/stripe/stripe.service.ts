@@ -11,10 +11,6 @@ export class StripeService {
     private readonly prismaService: PrismaService
   ) {}
 
-  public getPublicKey(): string {
-    return this.configService.get('STRIPE_PUBLIC_KEY');
-  }
-
   public async constructEventFromPayload(
     signature: string,
     payload: Buffer

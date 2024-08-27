@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { Request, Response } from 'express';
+import { COOKIE_MAX_AGE, COOKIES } from 'src/shared/constants/cookies';
 
 @Controller('customer')
 export class CustomerController {
@@ -19,8 +20,8 @@ export class CustomerController {
     const { email } = request.body;
     const customer = await this.customerService.create(email);
 
-    response.cookie('customer', customer.id, {
-      maxAge: 90000,
+    response.cookie(COOKIES.CUSTOMER, customer.id, {
+      maxAge: COOKIE_MAX_AGE,
       httpOnly: true
     });
 
@@ -37,8 +38,8 @@ export class CustomerController {
         .json({ message: 'Customer not found' });
     }
 
-    response.cookie('customer', customer.data[0].id, {
-      maxAge: 90000,
+    response.cookie(COOKIES.CUSTOMER, customer.data[0].id, {
+      maxAge: COOKIE_MAX_AGE,
       httpOnly: true
     });
 

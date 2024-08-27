@@ -8,6 +8,10 @@ import {
   getEndOfDayTimestamp
 } from 'src/shared/utils/date';
 import Stripe from 'stripe';
+import { CreateSubscriptionDto } from './dto/create-subscription.dto';
+import { ExtendSubscriptionDto } from './dto/extend-subscription.dto';
+import { UpdateDefaultPaymentMethodDto } from './dto/update-default-payment.dto';
+import { Environment } from 'src/shared/constants/environment.enum';
 
 @Injectable()
 export class SubscriptionService {
@@ -58,7 +62,7 @@ export class SubscriptionService {
   public async updateDefaultPaymentMethod({
     payment_intent_id,
     subscription_id
-  }: any) {
+  }: UpdateDefaultPaymentMethodDto) {
     const payment_intent =
       await this.stripe.paymentIntents.retrieve(payment_intent_id);
     const paymentMethodId =
@@ -88,7 +92,12 @@ export class SubscriptionService {
     }
   }
 
-  public async save({ id, period: { end, start }, customerId, priceId }: any) {
+  public async save({
+    id,
+    period: { end, start },
+    customerId,
+    priceId
+  }: CreateSubscriptionDto) {
     return await this.prismaService.subscription.create({
       data: {
         id,
@@ -100,7 +109,7 @@ export class SubscriptionService {
     });
   }
 
-  public async extend({ id, period: { end } }: any) {
+  public async extend({ id, period: { end } }: ExtendSubscriptionDto) {
     return await this.prismaService.subscription.update({
       where: {
         id
@@ -113,7 +122,7 @@ export class SubscriptionService {
 
   public async checkAccess(userId: string) {
     let currentTime: number;
-    if (this.configService.get('NODE_ENV') !== 'production') {
+    if (this.configService.get('NODE_ENV') !== Environment.Production) {
       const testClocks = await this.stripe.testHelpers.testClocks.list({
         limit: 1
       });
@@ -127,7 +136,7 @@ export class SubscriptionService {
       currentTime = getEndOfDayTimestamp();
     }
 
-    const subscriptions = await this.prismaService.subscription.findMany({
+    return await this.prismaService.subscription.findMany({
       where: {
         customer: {
           id: userId
@@ -137,7 +146,5 @@ export class SubscriptionService {
         }
       }
     });
-
-    return subscriptions;
   }
 }

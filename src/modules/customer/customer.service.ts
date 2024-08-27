@@ -35,8 +35,8 @@ export class CustomerService {
     });
   }
 
-  public async deleteByStripeId(id) {
-    return await this.prismaService.customer.delete({
+  public async deleteByStripeId(id): Promise<void> {
+    await this.prismaService.customer.delete({
       where: {
         id
       }

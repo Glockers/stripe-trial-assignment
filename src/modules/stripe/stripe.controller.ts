@@ -4,7 +4,6 @@ import {
   Post,
   Req,
   Headers,
-  Get,
   InternalServerErrorException
 } from '@nestjs/common';
 import { StripeService } from './stripe.service';
@@ -21,13 +20,6 @@ export class StripeController {
     private readonly customerService: CustomerService,
     @InjectPinoLogger(StripeController.name) private readonly logger: PinoLogger
   ) {}
-
-  @Get('/getPublicKey')
-  async getPublicKey() {
-    return {
-      publishableKey: this.stripeService.getPublicKey()
-    };
-  }
 
   @Post('/webhook')
   async handleIncomingEvents(
@@ -62,20 +54,19 @@ export class StripeController {
         const product = invoice.lines.data[0];
         if (invoice['billing_reason'] === 'subscription_create') {
           await this.subscriptionService.updateDefaultPaymentMethod({
-            payment_intent_id: invoice.payment_intent,
-            subscription_id: invoice.subscription
+            payment_intent_id: invoice.payment_intent as string,
+            subscription_id: invoice.subscription as string
           });
 
           return await this.subscriptionService.save({
-            id: invoice.subscription,
-            subscriptionId: invoice.subscription,
+            id: invoice.subscription as string,
             period: product.period,
-            customerId: invoice.customer,
+            customerId: invoice.customer as string,
             priceId: product.price.id
           });
         } else if (invoice['billing_reason'] === 'subscription_cycle') {
           return await this.subscriptionService.extend({
-            id: invoice.subscription,
+            id: invoice.subscription as string,
             period: product.period
           });
         }

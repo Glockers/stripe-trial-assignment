@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { middleware } from './app.middleware';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 import { Logger as NestLogger } from '@nestjs/common';
+import { CORS_OPTION } from './shared/constants/cors';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -16,11 +17,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('api');
-  app.enableCors({
-    origin: ['http://localhost:3000'],
-    methods: ['GET', 'POST'],
-    credentials: true
-  });
+  app.enableCors(CORS_OPTION);
 
   middleware(app);
 
