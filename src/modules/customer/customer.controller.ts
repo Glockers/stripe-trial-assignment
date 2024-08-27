@@ -17,7 +17,7 @@ export class CustomerController {
   @Post()
   async createCustomer(@Req() request: Request, @Res() response: Response) {
     const { email } = request.body;
-    const customer = await this.customerService.createCustomer(email);
+    const customer = await this.customerService.create(email);
 
     response.cookie('customer', customer.id, {
       maxAge: 90000,
@@ -29,11 +29,20 @@ export class CustomerController {
 
   @Get()
   async getCustomer(@Query('email') email: string, @Res() response: Response) {
-    const customer = await this.customerService.getCustomer(email);
+    const customer = await this.customerService.findByEmail(email);
+
+    if (customer.data.length === 0) {
+      return response
+        .status(HttpStatus.NOT_FOUND)
+        .json({ message: 'Customer not found' });
+    }
+
     response.cookie('customer', customer.data[0].id, {
       maxAge: 90000,
       httpOnly: true
     });
+
+    response.status(HttpStatus.OK).json(customer.data);
 
     return response.status(HttpStatus.OK).json(customer.data);
   }

@@ -1,10 +1,23 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { plan_lookup_keys } from 'src/constants/config';
+import { ConfigService } from '@nestjs/config';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { PLAN_LOOKUP_KEYS } from 'src/shared/constants/stripe';
+import {
+  convertUnixTimestampToDate,
+  getEndOfDayTimestamp
+} from 'src/shared/utils/date';
 import Stripe from 'stripe';
 
 @Injectable()
 export class SubscriptionService {
-  constructor(@Inject('STRIPE') private readonly stripe: Stripe) {}
+  constructor(
+    @Inject('STRIPE') private readonly stripe: Stripe,
+    @InjectPinoLogger(SubscriptionService.name)
+    private readonly logger: PinoLogger,
+    private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService
+  ) {}
 
   public async create({ customerId, priceId }: any) {
     try {
@@ -27,7 +40,7 @@ export class SubscriptionService {
         clientSecret: intent.client_secret
       };
     } catch (error) {
-      console.error(error.message);
+      this.logger.error(error.message);
       return {
         status: HttpStatus.BAD_REQUEST,
         message: error.message
@@ -37,7 +50,7 @@ export class SubscriptionService {
 
   async getPlans() {
     return await this.stripe.prices.list({
-      lookup_keys: [...plan_lookup_keys],
+      lookup_keys: [...PLAN_LOOKUP_KEYS],
       expand: ['data.product']
     });
   }
@@ -61,21 +74,70 @@ export class SubscriptionService {
         }
       );
 
-      console.log(
+      this.logger.info(
         'Default payment method set for subscription:' +
           payment_intent.payment_method
       );
 
       return subscription;
     } catch (err) {
-      console.error(err);
-      console.error(
+      this.logger.error(err);
+      this.logger.error(
         `⚠️  Failed to update the default payment method for subscription: ${subscription_id}`
       );
     }
   }
 
-  public async save() {}
+  public async save({ id, period: { end, start }, customerId, priceId }: any) {
+    return await this.prismaService.subscription.create({
+      data: {
+        id,
+        endDate: convertUnixTimestampToDate(end),
+        startDate: convertUnixTimestampToDate(start),
+        customerId,
+        priceId
+      }
+    });
+  }
 
-  public async extend() {}
+  public async extend({ id, period: { end } }: any) {
+    return await this.prismaService.subscription.update({
+      where: {
+        id
+      },
+      data: {
+        endDate: convertUnixTimestampToDate(end)
+      }
+    });
+  }
+
+  public async checkAccess(userId: string) {
+    let currentTime: number;
+    if (this.configService.get('NODE_ENV') !== 'production') {
+      const testClocks = await this.stripe.testHelpers.testClocks.list({
+        limit: 1
+      });
+
+      if (testClocks.data.length > 0) {
+        currentTime = testClocks.data[0].frozen_time;
+      } else {
+        currentTime = getEndOfDayTimestamp();
+      }
+    } else {
+      currentTime = getEndOfDayTimestamp();
+    }
+
+    const subscriptions = await this.prismaService.subscription.findMany({
+      where: {
+        customer: {
+          id: userId
+        },
+        endDate: {
+          gt: convertUnixTimestampToDate(currentTime)
+        }
+      }
+    });
+
+    return subscriptions;
+  }
 }

@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { SubscriptionService } from './subscription.service';
 import { Request } from 'express';
+import { Cookies } from 'src/shared/decorators/cookie.decorator';
 
 @Controller('subscription')
 export class SubscriptionController {
@@ -26,5 +27,10 @@ export class SubscriptionController {
   @Get('/plans')
   public getPlans() {
     return this.subscriptionService.getPlans();
+  }
+
+  @Get('/access')
+  public async getAccess(@Cookies('customer') customerId: string) {
+    return await this.subscriptionService.checkAccess(customerId);
   }
 }
