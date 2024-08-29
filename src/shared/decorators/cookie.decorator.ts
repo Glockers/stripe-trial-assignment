@@ -5,12 +5,12 @@ import {
 } from '@nestjs/common';
 
 export const Cookies = createParamDecorator(
-  (data: string, ctx: ExecutionContext) => {
+  (cookieName: string, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    const cookie = request.cookies[data];
-
+    const cookie = request.cookies[cookieName];
+    console.log('Test cookie', cookie);
     if (!cookie) {
-      throw new BadRequestException();
+      throw new BadRequestException(`Cookie: "${cookieName}" not found`);
     }
 
     return cookie;

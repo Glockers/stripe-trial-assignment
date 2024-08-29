@@ -3,9 +3,8 @@ import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { middleware } from './app.middleware';
-import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+import { Logger } from 'nestjs-pino';
 import { Logger as NestLogger } from '@nestjs/common';
-import { CORS_OPTION } from './config/cors';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -13,15 +12,12 @@ async function bootstrap() {
   });
 
   app.useLogger(app.get(Logger));
-  app.useGlobalInterceptors(new LoggerErrorInterceptor());
 
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('api');
-  app.enableCors(CORS_OPTION);
 
   middleware(app);
 
-  app.enableShutdownHooks();
   await app.listen(configService.get('PORT'), '0.0.0.0');
   return app.getUrl();
 }

@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  Post
-} from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { SubscriptionService } from './subscription.service';
 import { Cookies } from 'src/shared/decorators/cookie.decorator';
 import { COOKIES } from 'src/shared/constants/cookies';
@@ -20,9 +14,6 @@ export class SubscriptionController {
     @Cookies(COOKIES.CUSTOMER)
     customerId: string
   ) {
-    if (!priceId || !customerId)
-      throw new BadRequestException('priceId or customerId are empty');
-
     return await this.subscriptionService.create({ customerId, priceId });
   }
 
