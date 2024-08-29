@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SubscriptionService } from './subscription.service';
 import { SubscriptionController } from './subscription.controller';
-import { StripeProvider } from 'src/shared/stripe.provider';
+import { StripeProvider } from 'src/shared/providers/stripe.provider';
 
 @Module({
   controllers: [SubscriptionController],

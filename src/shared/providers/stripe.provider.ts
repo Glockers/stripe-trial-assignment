@@ -1,6 +1,6 @@
 import { Stripe } from 'stripe';
 import { ConfigService } from '@nestjs/config';
-import { stripeConfig } from 'src/constants/config';
+import { stripeConfig } from 'src/config';
 
 export const StripeProvider = {
   provide: 'STRIPE',

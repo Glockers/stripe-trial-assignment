@@ -1,20 +1,36 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as cookieParser from 'cookie-parser';
-import rawBodyMiddleware from './shared/rawBody.middleware';
-import helmet from 'helmet';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { ConfigService } from '@nestjs/config';
+import { middleware } from './app.middleware';
+import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
+import { Logger as NestLogger } from '@nestjs/common';
+import { CORS_OPTION } from './config/cors';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api');
-  app.use(rawBodyMiddleware());
-  app.enableCors({
-    origin: ['http://localhost:3000'],
-    methods: ['GET', 'POST'],
-    credentials: true
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true
   });
-  app.use(cookieParser());
-  app.use(helmet());
-  await app.listen(5000);
+
+  app.useLogger(app.get(Logger));
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
+
+  const configService = app.get(ConfigService);
+  app.setGlobalPrefix('api');
+  app.enableCors(CORS_OPTION);
+
+  middleware(app);
+
+  app.enableShutdownHooks();
+  await app.listen(configService.get('PORT'), '0.0.0.0');
+  return app.getUrl();
 }
-bootstrap();
+
+void (async (): Promise<void> => {
+  try {
+    const url = await bootstrap();
+    NestLogger.log(url, 'Bootstrap');
+  } catch (error) {
+    NestLogger.error(error, 'Bootstrap');
+  }
+})();

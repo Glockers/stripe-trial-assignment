@@ -1,18 +1,47 @@
 version: '3.9'
 services:
-  # server:
-  #   container_name: server
-  #   build:
-  #     dockerfile: Dockerfile
-  #   restart: on-failure
-  #   command: yarn start:dev
-  #   ports:
-  #     - 5000:5000
-  #   volumes:
-  #     - ./:/usr/src/app
   stripe:
     container_name: stripe
     image: stripe/stripe-cli:latest
     command: listen --skip-verify --forward-to host.docker.internal:5000/api/stripe/webhook
     extra_hosts:
       - --add-host=host.docker.internal:host-gateway
+  # postgres:
+  #   container_name: postgres
+  #   image: postgres:14-alpine
+  #   restart: always
+  #   environment:
+  #     POSTGRES_DB: stripe
+  #     POSTGRES_USER: root
+  #     POSTGRES_PASSWORD: root
+  #   ports:
+  #     - '35001:5432'
+  #   volumes:
+  #     - postgres:/var/lib/postgresql/data
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin
+  #   restart: always
+  #   ports:
+  #     - '8888:80'
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: root@domain.com
+  #     PGADMIN_DEFAULT_PASSWORD: root
+  #   volumes:
+  #     - pgadmin-data:/var/lib/pgadmin
+  server:
+    container_name: server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: on-failure
+    env_file: ".env"
+    ports:
+      - 5000:5000
+    depends_on:
+      - stripe
+    volumes:
+      - ./src:/app/src
+# volumes:
+  # postgres:
+  # pgadmin-data:
