@@ -7,6 +7,5 @@ export const CORS_OPTION: CorsOptions = {
   origin: ALLOWS_URL,
   methods: '*',
   credentials: true,
-  maxAge: COOKIE_MAX_AGE,
-  allowedHeaders: ['Content-Type', 'Authorization']
+  maxAge: COOKIE_MAX_AGE
 };

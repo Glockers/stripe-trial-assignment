@@ -8,9 +8,9 @@ import {
   getEndOfDayTimestamp
 } from 'src/shared/utils/date';
 import Stripe from 'stripe';
-import { CreateSubscriptionDto } from './dto/create-subscription.dto';
-import { ExtendSubscriptionDto } from './dto/extend-subscription.dto';
-import { UpdateDefaultPaymentMethodDto } from './dto/update-default-payment.dto';
+import { ICreateSubscription } from './dto/create-subscription.dto';
+import { IExtendSubscription } from './dto/extend-subscription.dto';
+import { IUpdateDefaultPaymentMethod } from './dto/update-default-payment.dto';
 import { Environment } from 'src/shared/constants/environment.enum';
 
 @Injectable()
@@ -53,7 +53,7 @@ export class SubscriptionService {
   public async updateDefaultPaymentMethod({
     payment_intent_id,
     subscription_id
-  }: UpdateDefaultPaymentMethodDto) {
+  }: IUpdateDefaultPaymentMethod) {
     const payment_intent =
       await this.stripe.paymentIntents.retrieve(payment_intent_id);
     const paymentMethodId =
@@ -88,7 +88,7 @@ export class SubscriptionService {
     period: { end, start },
     customerId,
     priceId
-  }: CreateSubscriptionDto) {
+  }: ICreateSubscription) {
     return await this.prismaService.subscription.create({
       data: {
         id,
@@ -100,7 +100,7 @@ export class SubscriptionService {
     });
   }
 
-  public async extend({ id, period: { end } }: ExtendSubscriptionDto) {
+  public async extend({ id, period: { end } }: IExtendSubscription) {
     return await this.prismaService.subscription.update({
       where: {
         id

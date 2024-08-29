@@ -1,14 +1,14 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
-  Post,
-  Req
+  Post
 } from '@nestjs/common';
 import { SubscriptionService } from './subscription.service';
-import { Request } from 'express';
 import { Cookies } from 'src/shared/decorators/cookie.decorator';
 import { COOKIES } from 'src/shared/constants/cookies';
+import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 
 @Controller('subscription')
 export class SubscriptionController {
@@ -16,11 +16,10 @@ export class SubscriptionController {
 
   @Post()
   async createSubscription(
-    @Req() req: Request,
-    @Cookies(COOKIES.CUSTOMER) customerId: string
+    @Body() { priceId }: CreateSubscriptionDto,
+    @Cookies(COOKIES.CUSTOMER)
+    customerId: string
   ) {
-    const priceId = req.body.priceId;
-
     if (!priceId || !customerId)
       throw new BadRequestException('priceId or customerId are empty');
 
