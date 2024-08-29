@@ -10,7 +10,6 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch | pino-pretty",
-    "start:dev-docker": " docker-compose -f docker-compose.dev.yaml up",
     "start:debug": "nest start --debug --watch",
     "start:repl": "nest start --watch --entryFile repl",
     "start:prod": "node dist/main",

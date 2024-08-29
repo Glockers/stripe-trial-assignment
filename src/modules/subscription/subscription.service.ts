@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
@@ -24,32 +24,23 @@ export class SubscriptionService {
   ) {}
 
   public async create({ customerId, priceId }: any) {
-    try {
-      const subscription = await this.stripe.subscriptions.create({
-        customer: customerId,
-        items: [
-          {
-            price: priceId
-          }
-        ],
-        payment_behavior: 'default_incomplete',
-        expand: ['latest_invoice.payment_intent']
-      });
-      const invoice = subscription.latest_invoice as Stripe.Invoice;
-      const intent = invoice.payment_intent as Stripe.PaymentIntent;
+    const subscription = await this.stripe.subscriptions.create({
+      customer: customerId,
+      items: [
+        {
+          price: priceId
+        }
+      ],
+      payment_behavior: 'default_incomplete',
+      expand: ['latest_invoice.payment_intent']
+    });
+    const invoice = subscription.latest_invoice as Stripe.Invoice;
+    const intent = invoice.payment_intent as Stripe.PaymentIntent;
 
-      return {
-        status: HttpStatus.CREATED,
-        subscriptionId: subscription.id,
-        clientSecret: intent.client_secret
-      };
-    } catch (error) {
-      this.logger.error(error.message);
-      return {
-        status: HttpStatus.BAD_REQUEST,
-        message: error.message
-      };
-    }
+    return {
+      subscriptionId: subscription.id,
+      clientSecret: intent.client_secret
+    };
   }
 
   async getPlans() {
@@ -134,6 +125,10 @@ export class SubscriptionService {
       }
     } else {
       currentTime = getEndOfDayTimestamp();
+    }
+
+    if (!userId) {
+      throw new BadRequestException('UserId is empty');
     }
 
     return await this.prismaService.subscription.findMany({

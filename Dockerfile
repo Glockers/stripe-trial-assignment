@@ -1,9 +1,17 @@
 FROM node:lts-alpine
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-COPY package*.json .
+COPY package.json yarn.lock ./
 
-RUN yarn install
+RUN yarn
 
 COPY . .
+
+RUN yarn prisma generate
+
+RUN yarn prisma migrate deploy
+
+RUN yarn build
+
+CMD [ "yarn", "start:prod" ]

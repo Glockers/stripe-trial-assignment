@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { middleware } from './app.middleware';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 import { Logger as NestLogger } from '@nestjs/common';
-import { CORS_OPTION } from './shared/constants/cors';
+import { CORS_OPTION } from './config/cors';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {

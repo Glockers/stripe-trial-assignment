@@ -24,7 +24,7 @@ export class SubscriptionController {
     if (!priceId || !customerId)
       throw new BadRequestException('priceId or customerId are empty');
 
-    return this.subscriptionService.create({ customerId, priceId });
+    return await this.subscriptionService.create({ customerId, priceId });
   }
 
   @Get('/plans')
