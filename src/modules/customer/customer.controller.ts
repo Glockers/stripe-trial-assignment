@@ -1,23 +1,26 @@
 import {
+  Body,
   Controller,
   Get,
   HttpStatus,
   Post,
   Query,
-  Req,
   Res
 } from '@nestjs/common';
 import { CustomerService } from './customer.service';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { COOKIE_MAX_AGE, COOKIES } from 'src/shared/constants/cookies';
+import { CreateCustomerDto } from './dto/create-customer.dto';
 
 @Controller('customer')
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
   @Post()
-  async createCustomer(@Req() request: Request, @Res() response: Response) {
-    const { email } = request.body;
+  async createCustomer(
+    @Body() { email }: CreateCustomerDto,
+    @Res() response: Response
+  ) {
     const customer = await this.customerService.create(email);
 
     response.cookie(COOKIES.CUSTOMER, customer.id, {

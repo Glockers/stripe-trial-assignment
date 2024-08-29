@@ -1,8 +1,18 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import {
+  BadRequestException,
+  createParamDecorator,
+  ExecutionContext
+} from '@nestjs/common';
 
 export const Cookies = createParamDecorator(
   (data: string, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    return data ? request.cookies?.[data] : request.cookies;
+    const cookie = request.cookies[data];
+
+    if (!cookie) {
+      throw new BadRequestException();
+    }
+
+    return cookie;
   }
 );

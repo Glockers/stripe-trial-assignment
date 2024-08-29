@@ -1,4 +1,4 @@
-import { CreateSubscriptionDto } from './create-subscription.dto';
+import { ICreateSubscription } from './create-subscription.dto';
 
-export interface ExtendSubscriptionDto
-  extends Omit<CreateSubscriptionDto, 'customerId' | 'priceId'> {}
+export interface IExtendSubscription
+  extends Omit<ICreateSubscription, 'customerId' | 'priceId'> {}
