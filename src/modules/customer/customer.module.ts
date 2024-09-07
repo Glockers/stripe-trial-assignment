@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
-import { CustomerService } from './customer.service';
+import { CustomerRepository } from './customer.repository';
 import { CustomerController } from './customer.controller';
-import { StripeProvider } from 'src/shared/providers/stripe.provider';
+import { CustomerService } from './customer.service';
+import { StripeModule } from '../payment/stripe/stripe.module';
 
 @Module({
+  imports: [StripeModule],
   controllers: [CustomerController],
-  providers: [CustomerService, StripeProvider],
+  providers: [CustomerRepository, CustomerService],
   exports: [CustomerService]
 })
 export class CustomerModule {}

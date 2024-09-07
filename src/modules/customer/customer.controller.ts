@@ -7,25 +7,32 @@ import {
   Query,
   Res
 } from '@nestjs/common';
-import { CustomerService } from './customer.service';
 import { Response } from 'express';
 import { COOKIE_MAX_AGE, COOKIES } from 'src/shared/constants/cookies';
 import { CreateCustomerDto } from './dto/create-customer.dto';
+import { CustomerService } from './customer.service';
+import { ConfigService } from '@nestjs/config';
+import { Environment } from 'src/shared/constants/environment.enum';
 
 @Controller('customer')
 export class CustomerController {
-  constructor(private readonly customerService: CustomerService) {}
+  constructor(
+    private readonly customerService: CustomerService,
+    private readonly configService: ConfigService
+  ) {}
 
   @Post()
   async createCustomer(
     @Body() { email }: CreateCustomerDto,
-    @Res() response: Response
+    @Res({ passthrough: true }) response: Response
   ) {
     const customer = await this.customerService.create(email);
-
+    const isProd =
+      this.configService.get('NODE_ENV') === Environment.Production;
     response.cookie(COOKIES.CUSTOMER, customer.id, {
       maxAge: COOKIE_MAX_AGE,
-      httpOnly: true
+      httpOnly: true,
+      secure: isProd
     });
 
     return response.status(HttpStatus.OK).json(customer);
@@ -33,21 +40,22 @@ export class CustomerController {
 
   @Get()
   async getCustomer(@Query('email') email: string, @Res() response: Response) {
-    const customer = await this.customerService.findByEmail(email);
+    const customer = await this.customerService.findOneByEmail(email);
 
-    if (customer.data.length === 0) {
+    if (!customer) {
       return response
         .status(HttpStatus.NOT_FOUND)
         .json({ message: 'Customer not found' });
     }
 
-    response.cookie(COOKIES.CUSTOMER, customer.data[0].id, {
+    const isProd =
+      this.configService.get('NODE_ENV') === Environment.Production;
+    response.cookie(COOKIES.CUSTOMER, customer.id, {
       maxAge: COOKIE_MAX_AGE,
-      httpOnly: true
+      httpOnly: true,
+      secure: isProd
     });
 
-    response.status(HttpStatus.OK).json(customer.data);
-
-    return response.status(HttpStatus.OK).json(customer.data);
+    return response.status(HttpStatus.OK).json(customer);
   }
 }

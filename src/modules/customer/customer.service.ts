@@ -1,45 +1,25 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import Stripe from 'stripe';
+import { Customer } from '@prisma/client';
+import { CustomerRepository } from './customer.repository';
+import { Injectable } from '@nestjs/common';
+import { StripePaymentayment } from '../payment/stripe/stripe-payment.service';
 
 @Injectable()
 export class CustomerService {
   constructor(
-    @Inject('STRIPE') private readonly stripe: Stripe,
-    private readonly prismaService: PrismaService
+    private readonly customerRepository: CustomerRepository,
+    private readonly payment: StripePaymentayment
   ) {}
 
-  public async create(email: string) {
-    const resSearch = await this.findByEmail(email);
-
-    if (resSearch.data.length > 0) {
-      throw new ConflictException('Customer already exists');
-    }
-    const createdStripeCustomer = await this.stripe.customers.create({
-      email
-    });
-
-    await this.prismaService.customer.create({
-      data: {
-        id: createdStripeCustomer.id,
-        email
-      }
-    });
-
-    return createdStripeCustomer;
+  async deleteCustomer(id: string): Promise<Customer> {
+    return await this.customerRepository.deleteOne(id);
   }
 
-  public async findByEmail(email: string) {
-    return await this.stripe.customers.search({
-      query: `email:"${email}"`
-    });
+  async create(email: string): Promise<Customer> {
+    const { id } = await this.payment.createCustomer(email);
+    return await this.customerRepository.save({ email, id });
   }
 
-  public async deleteByStripeId(id): Promise<void> {
-    await this.prismaService.customer.delete({
-      where: {
-        id
-      }
-    });
+  async findOneByEmail(email: string): Promise<Customer | null> {
+    return await this.payment.findCustomer(email);
   }
 }

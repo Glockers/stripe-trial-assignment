@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { StripeModule } from './modules/stripe/stripe.module';
 import { ConfigModule } from '@nestjs/config';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { CustomerModule } from './modules/customer/customer.module';
 import { LoggerModule } from 'nestjs-pino';
 import { PrismaModule } from './infra/prisma/prisma.module';
+import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -14,8 +14,8 @@ import { PrismaModule } from './infra/prisma/prisma.module';
     }),
     PrismaModule,
     SubscriptionModule,
-    StripeModule,
-    CustomerModule
+    CustomerModule,
+    PaymentModule
   ]
 })
 export class AppModule {}

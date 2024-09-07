@@ -14,4 +14,6 @@ RUN yarn prisma migrate deploy
 
 RUN yarn build
 
+EXPOSE 5000
+
 CMD [ "yarn", "start:prod" ]

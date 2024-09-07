@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
-import { SubscriptionService } from './subscription.service';
+import { SubscriptionRepository } from './subscription.repository';
 import { SubscriptionController } from './subscription.controller';
-import { StripeProvider } from 'src/shared/providers/stripe.provider';
+import { SubscriptionService } from './subscription.service';
+import { StripeModule } from '../payment/stripe/stripe.module';
 
 @Module({
+  imports: [StripeModule],
   controllers: [SubscriptionController],
-  providers: [SubscriptionService, StripeProvider],
+  providers: [SubscriptionRepository, SubscriptionService],
   exports: [SubscriptionService]
 })
 export class SubscriptionModule {}
